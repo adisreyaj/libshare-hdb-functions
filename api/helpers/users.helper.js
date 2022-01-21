@@ -1,3 +1,5 @@
+'use strict';
+
 const yup = require('yup');
 const bcrypt = require('bcryptjs');
 const errors = require('./errors.helper');

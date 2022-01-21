@@ -1,3 +1,5 @@
+'use strict';
+
 const boom = require('@hapi/boom');
 
 const internalServerError = (reply, message = 'Internal server error') => {

@@ -1,3 +1,5 @@
+'use strict';
+
 const buildInsertQuery = (table, data) => {
   const { keys, values } = Object.keys(data).reduce(
     (acc, key) => {
@@ -13,6 +15,19 @@ const buildInsertQuery = (table, data) => {
 
 const buildGetQuery = (table, fields, opts) => {
   let query = `SELECT ${fields.join(',')} FROM ${table}`;
+  if (opts?.where) {
+    const whereConditions = Object.keys(opts.where).reduce((acc, key) => {
+      const value = opts.where[key];
+      acc.push(`${key} = ${typeof value === 'string' ? `'${value}'` : value}`);
+      return acc;
+    }, []);
+    query += ` WHERE ${whereConditions.join(' AND ')}`;
+  }
+
+  if (opts?.orderBy) {
+    query += ` ORDER BY ${opts.orderBy}`;
+  }
+
   if (opts?.limit) {
     query += ` LIMIT ${opts.limit}`;
   }

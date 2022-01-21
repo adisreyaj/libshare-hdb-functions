@@ -1,11 +1,8 @@
 'use strict';
 
-const dotenv = require('dotenv');
 const authHelpers = require('../helpers/auth.helper');
 const userHandlers = require('../helpers/users.handler');
 const userHelpers = require('../helpers/users.helper');
-
-dotenv.config();
 
 module.exports = async (server, hdb) => {
   server.route({
@@ -16,9 +13,9 @@ module.exports = async (server, hdb) => {
   });
 
   server.route({
-    url: '/users',
+    url: '/users/:id',
     method: 'GET',
     preValidation: [authHelpers.authenticationCheck(hdb.logger)],
-    handler: userHandlers.getUsersHandler(hdb),
+    handler: userHandlers.getUserHandler(hdb),
   });
 };
