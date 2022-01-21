@@ -1,6 +1,10 @@
 {
   "name": "lib-share-api",
   "version": "1.0.0",
-  "description": "custom functions demo",
-  "author": "jaxon@harperdb.io"
+  "description": "Lib share app custom harperdb functions",
+  "author": {
+    "email": "hi@adi.so",
+    "name": "Adithya Sreyaj",
+    "url": "https://adi.so"
+  }
 }
