@@ -1,0 +1,24 @@
+{
+  "name": "lib-share-custom-functions",
+  "version": "1.0.0",
+  "description": "Custom HarperDB functions for libshare",
+  "scripts": {},
+  "author": {
+    "name": "Adithya Sreyaj",
+    "email": "hi@adi.so",
+    "url": "https://adi.so"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "chokidar": "^3.5.3",
+    "dotenv": "^14.2.0",
+    "node-fetch": "^2.6.7",
+    "prettier": "^2.5.1"
+  },
+  "dependencies": {
+    "@hapi/boom": "^9.1.4",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^8.5.1",
+    "yup": "^0.32.11"
+  }
+}
