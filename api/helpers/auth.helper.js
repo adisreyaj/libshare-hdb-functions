@@ -1,3 +1,5 @@
+'use strict';
+
 const jwt = require('jsonwebtoken');
 const yup = require('yup');
 const bcrypt = require('bcryptjs');
@@ -10,6 +12,7 @@ const authenticationCheck = (logger) => async (request, reply) => {
   try {
     const token = request.headers.authorization.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    request.jwt = decoded;
     return true;
   } catch (error) {
     logger.error('Unauthorized');
@@ -23,7 +26,7 @@ const generateToken = (logger, reply) => async (user) => {
     const token = jwt.sign(
       {
         email: user.email,
-        aud: user.email,
+        aud: user.id,
         iss: 'https://libshare.adi.so',
         sub: 'libshare-web',
       },

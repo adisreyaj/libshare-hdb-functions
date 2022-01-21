@@ -1,3 +1,5 @@
+'use strict';
+
 const qb = require('./query-builder.helper');
 const errors = require('./errors.helper');
 const authHelpers = require('./auth.helper');
@@ -7,7 +9,7 @@ const loginHandler =
     const credentials = request.body;
     request.body = {
       operation: 'sql',
-      sql: qb.buildGetQuery('data.users', ['email', 'password'], { limit: 1 }),
+      sql: qb.buildGetQuery('data.users', ['id', 'email', 'password'], { limit: 1 }),
     };
     const result = await hdbCore.requestWithoutAuthentication(request);
     if (result.length === 0) {
