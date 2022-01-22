@@ -1,5 +1,7 @@
 'use strict';
 const qb = require('./query-builder-helper');
+const needle = require('needle');
+const SUGGESTIONS_API = `https://api.npms.io/v2/search/suggestions`;
 
 const getLibrariesHandler =
   ({ hdbCore }) =>
@@ -44,4 +46,19 @@ const addLibraryHandler =
     return hdbCore.requestWithoutAuthentication(request);
   };
 
-module.exports = { getLibrariesHandler, addLibraryHandler, getLibraryHandler };
+const librarySuggestionsHandler = () => async (request) => {
+  const url = `${SUGGESTIONS_API}?q=${request.params.query}&size=5`;
+  try {
+    const response = await needle('get', url);
+    return response.body ? response.body.map((result) => ({ name: result.package.name })) : [];
+  } catch (error) {
+    return [];
+  }
+};
+
+module.exports = {
+  getLibrariesHandler,
+  addLibraryHandler,
+  getLibraryHandler,
+  librarySuggestionsHandler,
+};
