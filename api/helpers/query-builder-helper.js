@@ -1,5 +1,5 @@
 'use strict';
-
+const isObject = require('lodash.isobject');
 const buildInsertQuery = (table, data) => {
   const { keys, values } = Object.keys(data).reduce(
     (acc, key) => {
@@ -10,6 +10,8 @@ const buildInsertQuery = (table, data) => {
         valueToPush = `'${value}'`;
       } else if (Array.isArray(value)) {
         valueToPush = `'[${value.map((item) => `"${item}"`).join(',')}]'`;
+      } else if (isObject(value)) {
+        valueToPush = `'${JSON.stringify(value)}'`;
       }
       acc.values.push(valueToPush);
       return acc;
