@@ -1,7 +1,11 @@
 'use strict';
 const qb = require('./query-builder-helper');
 const needle = require('needle');
+const librariesHelper = require('./libraries-helper');
+const errors = require('./errors-helper');
+
 const SUGGESTIONS_API = `https://api.npms.io/v2/search/suggestions`;
+const DETAILS_API = 'https://api.npms.io/v2/package';
 
 const getLibrariesHandler =
   ({ hdbCore }) =>
@@ -56,9 +60,27 @@ const librarySuggestionsHandler = () => async (request) => {
   }
 };
 
+const libraryMetadataHandler =
+  ({ logger }) =>
+  async (request, reply) => {
+    const url = `${DETAILS_API}/${encodeURIComponent(request.params.libraryName)}`;
+    try {
+      const response = await needle('get', url);
+      if (response.body?.collected) {
+        return librariesHelper.formatLibraryMetaData(response.body);
+      } else {
+        errors.internalServerError(reply);
+      }
+    } catch (error) {
+      logger.notify(`Error: ${error.message}`);
+      errors.internalServerError(reply);
+    }
+  };
+
 module.exports = {
   getLibrariesHandler,
   addLibraryHandler,
   getLibraryHandler,
   librarySuggestionsHandler,
+  libraryMetadataHandler,
 };

@@ -26,6 +26,13 @@ module.exports = async (server, hdb) => {
   });
 
   server.route({
+    url: '/libraries/metadata/:libraryName',
+    method: 'GET',
+    preValidation: [authHelpers.authenticationCheck(hdb.logger)],
+    handler: libraryHandlers.libraryMetadataHandler(hdb),
+  });
+
+  server.route({
     url: '/libraries/:id',
     method: 'GET',
     preValidation: [authHelpers.authenticationCheck(hdb.logger)],
