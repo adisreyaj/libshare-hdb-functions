@@ -1,8 +1,8 @@
 'use strict';
 
-const qb = require('./query-builder.helper');
-const errors = require('./errors.helper');
-const authHelpers = require('./auth.helper');
+const qb = require('./query-builder-helper');
+const errors = require('./errors-helper');
+const authHelpers = require('./auth-helper');
 const loginHandler =
   ({ hdbCore, logger }) =>
   async (request, reply) => {

@@ -1,7 +1,7 @@
 'use strict';
 
-const authHelpers = require('../helpers/auth.helper');
-const libraryHandlers = require('../helpers/libraries.handler');
+const authHelpers = require('../helpers/auth-helper');
+const libraryHandlers = require('../helpers/libraries-handler');
 
 module.exports = async (server, hdb) => {
   server.route({

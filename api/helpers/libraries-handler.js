@@ -1,5 +1,5 @@
 'use strict';
-const qb = require('./query-builder.helper');
+const qb = require('./query-builder-helper');
 
 const getLibrariesHandler =
   ({ hdbCore }) =>

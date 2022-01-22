@@ -1,7 +1,7 @@
 'use strict';
 
-const { buildInsertQuery, buildGetQuery } = require('./query-builder.helper');
-const { hashPassword } = require('./users.helper');
+const { buildInsertQuery, buildGetQuery } = require('./query-builder-helper');
+const { hashPassword } = require('./users-helper');
 
 const createUserHandler =
   ({ hdbCore }) =>

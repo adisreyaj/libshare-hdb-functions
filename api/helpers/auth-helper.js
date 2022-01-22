@@ -3,7 +3,7 @@
 const jwt = require('jsonwebtoken');
 const yup = require('yup');
 const bcrypt = require('bcryptjs');
-const errors = require('./errors.helper');
+const errors = require('./errors-helper');
 require('dotenv').config({
   path: `${__dirname}/../.env`,
 });

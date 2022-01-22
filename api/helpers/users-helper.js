@@ -2,7 +2,7 @@
 
 const yup = require('yup');
 const bcrypt = require('bcryptjs');
-const errors = require('./errors.helper');
+const errors = require('./errors-helper');
 
 const hashPassword = async (password) => {
   try {
