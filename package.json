@@ -2,7 +2,9 @@
   "name": "lib-share-custom-functions",
   "version": "1.0.0",
   "description": "Custom HarperDB functions for libshare",
-  "scripts": {},
+  "scripts": {
+    "filewatcher": "node scripts/file-watcher.js"
+  },
   "author": {
     "name": "Adithya Sreyaj",
     "email": "hi@adi.so",
