@@ -12,12 +12,26 @@ const getLibrariesHandler =
   async (request) => {
     request.body = {
       operation: 'sql',
-      sql: qb.buildGetQuery('data.libraries', ['name', 'id'], {
-        where: {
-          user: request.jwt.aud,
+      sql: qb.buildGetQuery(
+        'data.libraries',
+        [
+          'name',
+          'description',
+          'id',
+          'github',
+          'license',
+          'npm',
+          'version',
+          'links',
+          '__createdtime__ as createdAt',
+        ],
+        {
+          where: {
+            user: request.jwt.aud,
+          },
+          orderBy: 'name',
         },
-        orderBy: 'name',
-      }),
+      ),
     };
     return hdbCore.requestWithoutAuthentication(request);
   };
@@ -27,26 +41,50 @@ const getLibraryHandler =
   async (request) => {
     request.body = {
       operation: 'sql',
-      sql: qb.buildGetQuery('data.libraries', ['name', 'id'], {
-        where: {
-          user: request.jwt.id,
-          id: request.params.id,
+      sql: qb.buildGetQuery(
+        'data.libraries',
+        [
+          'name',
+          'description',
+          'id',
+          'github',
+          'license',
+          'npm',
+          'version',
+          'links',
+          '__createdtime__ as createdAt',
+        ],
+        {
+          where: {
+            user: request.jwt.id,
+            id: request.params.id,
+          },
+          limit: 1,
         },
-        limit: 1,
-      }),
+      ),
     };
     return hdbCore.requestWithoutAuthentication(request);
   };
 
 const addLibraryHandler =
-  ({ hdbCore }) =>
+  ({ hdbCore, logger }) =>
   async (request) => {
-    const { name } = request.body;
+    const { name, description, github, license, links, npm, version } = request.body;
     const { aud } = request.jwt;
     request.body = {
       operation: 'sql',
-      sql: qb.buildInsertQuery('data.libraries', { name, user: aud }),
+      sql: qb.buildInsertQuery('data.libraries', {
+        name,
+        description,
+        github,
+        license,
+        links,
+        npm,
+        version,
+        user: aud,
+      }),
     };
+    logger.notify('Executing query:', request.body.sql);
     return hdbCore.requestWithoutAuthentication(request);
   };
 

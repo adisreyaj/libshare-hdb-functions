@@ -43,7 +43,7 @@ const getRepoDetails = async (repoLink) => {
 const getFormattedGithubData = (data) =>
   data
     ? {
-        start: data.stargazers_count,
+        stars: data.stargazers_count,
         forks: data.forks_count,
         watchers: data.watchers_count,
         language: data.language,
