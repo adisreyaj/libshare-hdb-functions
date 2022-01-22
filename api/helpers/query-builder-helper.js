@@ -5,11 +5,18 @@ const buildInsertQuery = (table, data) => {
     (acc, key) => {
       acc.keys.push(key);
       const value = data[key];
-      acc.values.push(typeof value === 'string' ? `'${value}'` : value);
+      let valueToPush = value;
+      if (typeof value === 'string') {
+        valueToPush = `'${value}'`;
+      } else if (Array.isArray(value)) {
+        valueToPush = `'[${value.map((item) => `"${item}"`).join(',')}]'`;
+      }
+      acc.values.push(valueToPush);
       return acc;
     },
     { keys: [], values: [] },
   );
+
   return `INSERT INTO ${table} (${keys.join(',')}) VALUES (${values.join(',')})`;
 };
 
@@ -22,9 +29,17 @@ const buildUpdateQuery = (table, data, opts) => {
   const { where, limit } = opts;
 
   const whereConditions = where
-    ? Object.keys(opts.where).reduce((acc, key) => {
-        const value = opts.where[key];
-        acc.push(`${key} = ${typeof value === 'string' ? `'${value}'` : value}`);
+    ? Object.keys(where).reduce((acc, key) => {
+        const value = where[key];
+        let valueToPush = null;
+        if (typeof value === 'string') {
+          valueToPush = `${key} = '${value}'`;
+        } else if (Array.isArray(value) && value?.length > 0) {
+          valueToPush = `${key} IN (${value.map((item) => `'${item}'`).join(',')})`;
+        } else {
+          valueToPush = `${key} = ${value}`;
+        }
+        if (valueToPush != null) acc.push(valueToPush);
         return acc;
       }, [])
     : [];
@@ -35,11 +50,19 @@ const buildUpdateQuery = (table, data, opts) => {
 };
 
 const buildGetQuery = (table, fields, opts) => {
-  const { where, limit, orderBy } = opts;
+  const { where, limit, orderBy, join } = opts;
   const whereConditions = where
     ? Object.keys(opts.where).reduce((acc, key) => {
         const value = opts.where[key];
-        acc.push(`${key} = ${typeof value === 'string' ? `'${value}'` : value}`);
+        let valueToPush = null;
+        if (typeof value === 'string') {
+          valueToPush = `${key} = '${value}'`;
+        } else if (Array.isArray(value) && value?.length > 0) {
+          valueToPush = `${key} IN (${value.map((item) => `'${item}'`).join(',')})`;
+        } else {
+          valueToPush = `${key} = ${value}`;
+        }
+        if (valueToPush != null) acc.push(valueToPush);
         return acc;
       }, [])
     : [];
@@ -47,7 +70,10 @@ const buildGetQuery = (table, fields, opts) => {
   const limitClause = limit ? `LIMIT ${limit}` : '';
   const whereClause = where ? `WHERE ${whereConditions.join(' AND ')}` : '';
   const orderByClause = orderBy ? `ORDER BY ${orderBy}` : '';
-  return `SELECT ${fields.join(',')} FROM ${table} ${whereClause} ${orderByClause} ${limitClause}`;
+  const joinClause = join ? `${join.type} ${join.table} ON ${join.condition}` : '';
+  return `SELECT ${fields.join(
+    ',',
+  )} FROM ${table} ${joinClause} ${whereClause} ${orderByClause} ${limitClause}`;
 };
 
 module.exports = {

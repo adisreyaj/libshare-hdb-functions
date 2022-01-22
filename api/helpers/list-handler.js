@@ -1,12 +1,13 @@
 'use strict';
 const qb = require('./query-builder-helper');
+const slugify = require('slugify');
 
 const getListsHandler =
   ({ hdbCore }) =>
   async (request) => {
     request.body = {
       operation: 'sql',
-      sql: qb.buildGetQuery('data.lists', ['name', 'id'], {
+      sql: qb.buildGetQuery('data.lists', ['name', 'id', 'slug', 'libraries'], {
         where: {
           user: request.jwt.aud,
         },
@@ -21,27 +22,40 @@ const getListHandler =
   async (request) => {
     request.body = {
       operation: 'sql',
-      sql: qb.buildGetQuery('data.lists', ['name', 'id'], {
+      sql: qb.buildGetQuery('data.lists', ['name','slug', 'id', 'libraries'], {
         where: {
-          user: request.jwt.id,
+          user: request.jwt.aud,
           id: request.params.id,
         },
         limit: 1,
       }),
     };
-    return hdbCore.requestWithoutAuthentication(request);
+    const [list] = await hdbCore.requestWithoutAuthentication(request);
+    request.body = {
+      operation: 'sql',
+      sql: qb.buildGetQuery('data.libraries', ['name', 'id'], {
+        where: {
+          user: request.jwt.aud,
+          id: list.libraries ?? [],
+        },
+      }),
+    };
+
+    const libraries = await hdbCore.requestWithoutAuthentication(request);
+    list.libraries = libraries ?? [];
+    return list;
   };
 
 const updateListHandler =
   ({ hdbCore }) =>
   async (request) => {
-    const { name, public: isPublic, bookmarks } = request.body;
+    const { name, public: isPublic, libraries } = request.body;
     const { aud } = request.jwt;
     request.body = {
       operation: 'sql',
       sql: qb.buildUpdateQuery(
         'data.lists',
-        { name, public: isPublic, bookmarks },
+        { name, public: isPublic, libraries },
         {
           where: {
             user: aud,
@@ -56,11 +70,17 @@ const updateListHandler =
 const addListHandler =
   ({ hdbCore }) =>
   async (request) => {
-    const { name } = request.body;
+    const { name, libraries, public: isPublic } = request.body;
     const { aud } = request.jwt;
     request.body = {
       operation: 'sql',
-      sql: qb.buildInsertQuery('data.lists', { name, user: aud, public: false }),
+      sql: qb.buildInsertQuery('data.lists', {
+        name,
+        slug: slugify(name).toLowerCase(),
+        user: aud,
+        public: isPublic ?? false,
+        libraries: libraries ?? [],
+      }),
     };
     return hdbCore.requestWithoutAuthentication(request);
   };
