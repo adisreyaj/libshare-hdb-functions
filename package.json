@@ -12,6 +12,7 @@
   "devDependencies": {
     "chokidar": "^3.5.3",
     "dotenv": "^14.2.0",
+    "eslint": "^8.7.0",
     "node-fetch": "^2.6.7",
     "prettier": "^2.5.1"
   },
@@ -19,6 +20,7 @@
     "@hapi/boom": "^9.1.4",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^8.5.1",
+    "needle": "^3.0.0",
     "yup": "^0.32.11"
   }
 }
