@@ -15,6 +15,7 @@ const getLibrariesHandler =
       sql: qb.buildGetQuery(
         'data.libraries',
         [
+          'id',
           'name',
           'description',
           'id',
@@ -44,6 +45,7 @@ const getLibraryHandler =
       sql: qb.buildGetQuery(
         'data.libraries',
         [
+          'id',
           'name',
           'description',
           'id',
@@ -88,6 +90,53 @@ const addLibraryHandler =
     return hdbCore.requestWithoutAuthentication(request);
   };
 
+const updateLibraryHandler =
+  ({ hdbCore }) =>
+  async (request) => {
+    const { aud } = request.jwt;
+    const { name, description, github, license, links, npm, version } = request.body;
+    request.body = {
+      operation: 'sql',
+      sql: qb.buildUpdateQuery(
+        'data.libraries',
+        {
+          name,
+          description,
+          github,
+          license,
+          links,
+          npm,
+          version,
+        },
+        {
+          where: {
+            id: request.params.id,
+            user: aud,
+          },
+        },
+      ),
+    };
+
+    return hdbCore.requestWithoutAuthentication(request);
+  };
+
+const deleteLibraryHandler =
+  ({ hdbCore }) =>
+  async (request) => {
+    const { aud } = request.jwt;
+    request.body = {
+      operation: 'sql',
+      sql: qb.buildDeleteQuery('data.libraries', {
+        where: {
+          id: request.params.id,
+          user: aud,
+        },
+      }),
+    };
+
+    return hdbCore.requestWithoutAuthentication(request);
+  };
+
 const librarySuggestionsHandler = () => async (request) => {
   const url = `${SUGGESTIONS_API}?q=${request.params.query}&size=5`;
   try {
@@ -121,4 +170,6 @@ module.exports = {
   getLibraryHandler,
   librarySuggestionsHandler,
   libraryMetadataHandler,
+  updateLibraryHandler,
+  deleteLibraryHandler,
 };

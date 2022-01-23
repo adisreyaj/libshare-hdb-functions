@@ -7,14 +7,16 @@ const GITHUB_API = 'https://api.github.com/repos';
 const formatLibraryMetaData = async (data) => {
   const {
     collected: {
-      metadata: { name, version, description, links, license },
+      metadata: { name, version, description, links, license, repository },
     },
     evaluation: {
       popularity: { downloadsCount },
     },
   } = data;
 
-  const githubMetaData = await getRepoDetails(links.repository);
+  const gitRepo = links.repository ?? repository.url ?? null;
+
+  const githubMetaData = gitRepo ? await getRepoDetails(gitRepo) : null;
 
   return {
     name,
@@ -49,6 +51,7 @@ const getFormattedGithubData = (data) =>
         language: data.language,
         homepage: data.homepage,
         image: data.owner?.avatar_url,
+        url: data.html_url,
       }
     : null;
 
@@ -57,7 +60,8 @@ const getGithubRepoFullName = (githubURL) => {
   try {
     const matches = regex.exec(githubURL);
     if (matches?.length === 3) {
-      return matches[2];
+      const url = matches[2];
+      return url.includes('.git') ? url.replace('.git', '') : url;
     }
     return null;
   } catch (error) {
