@@ -5,8 +5,16 @@ const errors = require('./errors-helper');
 
 const NEW_LIST_VALIDATOR_SCHEMA = yup.object().shape({
   name: yup.string().required(),
+  description: yup.string(),
   public: yup.boolean(),
-  libraries: yup.array().of(yup.string()),
+  libraries: yup.array().of(
+    yup.object().shape({
+      id: yup.string().required(),
+      name: yup.string().required(),
+      description: yup.string(),
+      image: yup.string().url(),
+    }),
+  ),
 });
 
 const UPDATE_LIST_VALIDATOR_SCHEMA = NEW_LIST_VALIDATOR_SCHEMA.shape({

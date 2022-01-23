@@ -29,7 +29,7 @@ module.exports = async (server, hdb) => {
       authHelpers.authenticationCheck(hdb.logger),
       listHelpers.validateUpdateList(hdb.logger),
     ],
-    handler: listHandlers.addListHandler(hdb),
+    handler: listHandlers.updateListHandler(hdb),
   });
 
   server.route({

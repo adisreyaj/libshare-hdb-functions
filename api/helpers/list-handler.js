@@ -49,13 +49,13 @@ const getListHandler =
 const updateListHandler =
   ({ hdbCore }) =>
   async (request) => {
-    const { name, public: isPublic, libraries } = request.body;
+    const { name, public: isPublic, libraries, description } = request.body;
     const { aud } = request.jwt;
     request.body = {
       operation: 'sql',
       sql: qb.buildUpdateQuery(
         'data.lists',
-        { name, public: isPublic, libraries },
+        { name, public: isPublic, libraries, description },
         {
           where: {
             user: { type: qb.WHERE_TYPE.EQUAL, value: aud },
@@ -64,18 +64,20 @@ const updateListHandler =
         },
       ),
     };
+
     return hdbCore.requestWithoutAuthentication(request);
   };
 
 const addListHandler =
   ({ hdbCore }) =>
   async (request) => {
-    const { name, libraries, public: isPublic } = request.body;
+    const { name, libraries, description, public: isPublic } = request.body;
     const { aud } = request.jwt;
     request.body = {
       operation: 'sql',
       sql: qb.buildInsertQuery('data.lists', {
         name,
+        description,
         slug: slugify(name).toLowerCase(),
         user: aud,
         public: isPublic ?? false,
