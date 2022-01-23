@@ -10,15 +10,13 @@ const buildInsertQuery = (table, data) => {
       const value = data[key];
       let valueToPush = null;
       if (typeof value === 'string') {
-        valueToPush = `'${escapeQuotes(value)}'`;
-      } else if (Array.isArray(value)) {
-        valueToPush = `'[${value.map((item) => `"${item}"`).join(',')}]'`;
+        valueToPush = escapeQuotes(value);
       } else if (isObject(value)) {
-        valueToPush = `'${JSON.stringify(value)}'`;
+        valueToPush = JSON.stringify(value);
       } else {
         valueToPush = value;
       }
-      if (valueToPush != null) acc.values.push(valueToPush);
+      if (valueToPush != null) acc.values.push(`'${valueToPush}'`);
       return acc;
     },
     { keys: [], values: [] },
@@ -32,15 +30,13 @@ const buildUpdateQuery = (table, data, opts) => {
     const value = data[key];
     let valueToPush = null;
     if (typeof value === 'string') {
-      valueToPush = `'${escapeQuotes(value)}'`;
-    } else if (Array.isArray(value) && value?.length > 0) {
-      valueToPush = `(${value.map((item) => `'${item}'`).join(',')})`;
+      valueToPush = escapeQuotes(value);
     } else if (isObject(value)) {
-      valueToPush = `'${JSON.stringify(value)}'`;
+      valueToPush = JSON.stringify(value);
     } else {
       valueToPush = value;
     }
-    if (valueToPush != null) acc.push(`${key} = ${valueToPush}`);
+    if (valueToPush != null) acc.push(`${key} = '${valueToPush}'`);
     return acc;
   }, []);
   const { where, limit } = opts;
