@@ -21,6 +21,7 @@
   "dependencies": {
     "@hapi/boom": "^9.1.4",
     "bcryptjs": "^2.4.3",
+    "escape-quotes": "^1.0.2",
     "jsonwebtoken": "^8.5.1",
     "lodash.isobject": "^3.0.2",
     "needle": "^3.0.0",
