@@ -9,7 +9,7 @@ const getListsHandler =
       operation: 'sql',
       sql: qb.buildGetQuery('data.lists', ['name', 'id', 'slug', 'libraries'], {
         where: {
-          user: request.jwt.aud,
+          user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
         },
         orderBy: 'name',
       }),
@@ -22,10 +22,10 @@ const getListHandler =
   async (request) => {
     request.body = {
       operation: 'sql',
-      sql: qb.buildGetQuery('data.lists', ['name','slug', 'id', 'libraries'], {
+      sql: qb.buildGetQuery('data.lists', ['name', 'slug', 'id', 'libraries'], {
         where: {
-          user: request.jwt.aud,
-          id: request.params.id,
+          user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+          id: { type: qb.WHERE_TYPE.EQUAL, value: request.params.id },
         },
         limit: 1,
       }),
@@ -35,8 +35,8 @@ const getListHandler =
       operation: 'sql',
       sql: qb.buildGetQuery('data.libraries', ['name', 'id'], {
         where: {
-          user: request.jwt.aud,
-          id: list.libraries ?? [],
+          user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+          id: { type: qb.WHERE_TYPE.IN, value: list.libraries ?? [] },
         },
       }),
     };
@@ -58,8 +58,8 @@ const updateListHandler =
         { name, public: isPublic, libraries },
         {
           where: {
-            user: aud,
-            id: request.params.id,
+            user: { type: qb.WHERE_TYPE.EQUAL, value: aud },
+            id: { type: qb.WHERE_TYPE.EQUAL, value: request.params.id },
           },
         },
       ),
@@ -85,4 +85,26 @@ const addListHandler =
     return hdbCore.requestWithoutAuthentication(request);
   };
 
-module.exports = { getListsHandler, addListHandler, getListHandler, updateListHandler };
+const deleteListHandler =
+  ({ hdbCore }) =>
+  async (request) => {
+    const { aud } = request.jwt;
+    request.body = {
+      operation: 'sql',
+      sql: qb.buildDeleteQuery('data.lists', {
+        where: {
+          user: { type: qb.WHERE_TYPE.EQUAL, value: aud },
+          id: { type: qb.WHERE_TYPE.EQUAL, value: request.params.id },
+        },
+      }),
+    };
+    return hdbCore.requestWithoutAuthentication(request);
+  };
+
+module.exports = {
+  getListsHandler,
+  addListHandler,
+  getListHandler,
+  updateListHandler,
+  deleteListHandler,
+};

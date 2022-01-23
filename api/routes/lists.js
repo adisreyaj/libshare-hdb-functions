@@ -24,7 +24,7 @@ module.exports = async (server, hdb) => {
 
   server.route({
     url: '/lists/:id',
-    method: 'PATCH',
+    method: 'PUT',
     preValidation: [
       authHelpers.authenticationCheck(hdb.logger),
       listHelpers.validateUpdateList(hdb.logger),
@@ -37,5 +37,12 @@ module.exports = async (server, hdb) => {
     method: 'GET',
     preValidation: [authHelpers.authenticationCheck(hdb.logger)],
     handler: listHandlers.getListHandler(hdb),
+  });
+
+  server.route({
+    url: '/lists/:id',
+    method: 'DELETE',
+    preValidation: [authHelpers.authenticationCheck(hdb.logger)],
+    handler: listHandlers.deleteListHandler(hdb),
   });
 };

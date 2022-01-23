@@ -11,12 +11,23 @@ require('dotenv').config({
 const authenticationCheck = (logger) => async (request, reply) => {
   try {
     const token = request.headers.authorization.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = getDecodedToken(token);
+    if (!decoded) {
+      return errors.unAuthorized(reply);
+    }
     request.jwt = decoded;
     return true;
   } catch (error) {
     logger.error('Unauthorized');
     errors.unAuthorized(reply);
+  }
+};
+
+const getDecodedToken = (token) => {
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    return null;
   }
 };
 
@@ -68,4 +79,5 @@ module.exports = {
   validateLoginBody,
   generateToken,
   validatePassword,
+  getDecodedToken,
 };

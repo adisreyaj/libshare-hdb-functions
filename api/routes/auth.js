@@ -14,6 +14,13 @@ module.exports = async (server, hdb) => {
   });
 
   server.route({
+    url: '/me',
+    method: 'GET',
+    preValidation: [authHelpers.authenticationCheck(hdb.logger)],
+    handler: authHandler.getUserHandler(hdb),
+  });
+
+  server.route({
     url: '/signup',
     method: 'POST',
     preValidation: userHelpers.validateUser(hdb.logger),

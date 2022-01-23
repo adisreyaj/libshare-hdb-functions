@@ -73,16 +73,15 @@ const buildDeleteQuery = (table, opts) => {
 function getWhereCondition(where) {
   return where
     ? Object.keys(where).reduce((acc, key) => {
-        const value = where[key];
+        const { value, type } = where[key];
+        const operator = WHERE_TYPE[type] ?? '=';
         let valueToPush = null;
         if (typeof value === 'string') {
-          valueToPush = `${key} = '${escapeQuotes(value)}'`;
+          valueToPush = `${key} ${operator} '${escapeQuotes(value)}'`;
         } else if (Array.isArray(value) && value?.length > 0) {
-          valueToPush = `${key} IN (${value.map((item) => `'${item}'`).join(',')})`;
-        } else if (isObject(value)) {
-          valueToPush = `'${JSON.stringify(value)}'`;
+          valueToPush = `${key} ${operator} (${value.map((item) => `'${item}'`).join(',')})`;
         } else {
-          valueToPush = `${key} = ${value}`;
+          valueToPush = `${key} ${operator} ${value}`;
         }
         if (valueToPush != null) acc.push(valueToPush);
         return acc;
@@ -90,9 +89,16 @@ function getWhereCondition(where) {
     : [];
 }
 
+const WHERE_TYPE = {
+  EQUAL: '=',
+  IN: 'IN',
+  LIKE: 'LIKE',
+};
+
 module.exports = {
   buildInsertQuery,
   buildGetQuery,
   buildUpdateQuery,
   buildDeleteQuery,
+  WHERE_TYPE,
 };

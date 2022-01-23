@@ -10,6 +10,16 @@ const DETAILS_API = 'https://api.npms.io/v2/package';
 const getLibrariesHandler =
   ({ hdbCore }) =>
   async (request) => {
+    let where = {
+      user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+    };
+
+    if (request.query.search) {
+      where = {
+        ...where,
+        name: { type: qb.WHERE_TYPE.LIKE, value: `%${request.query.search}%` },
+      };
+    }
     request.body = {
       operation: 'sql',
       sql: qb.buildGetQuery(
@@ -18,7 +28,6 @@ const getLibrariesHandler =
           'id',
           'name',
           'description',
-          'id',
           'github',
           'license',
           'npm',
@@ -27,14 +36,37 @@ const getLibrariesHandler =
           '__createdtime__ as createdAt',
         ],
         {
-          where: {
-            user: request.jwt.aud,
-          },
+          where,
           orderBy: 'name',
         },
       ),
     };
+
     return hdbCore.requestWithoutAuthentication(request);
+  };
+
+const getLibrariesSearchHandler =
+  ({ hdbCore }) =>
+  async (request) => {
+    let where = {
+      user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+      name: { type: qb.WHERE_TYPE.LIKE, value: `%${request.query.q}%` },
+    };
+    request.body = {
+      operation: 'sql',
+      sql: qb.buildGetQuery('data.libraries', ['id', 'name', 'description', 'github'], {
+        where,
+        orderBy: 'name',
+      }),
+    };
+
+    const result = await hdbCore.requestWithoutAuthentication(request);
+    return (result ?? []).map((lib) => ({
+      id: lib.id,
+      name: lib.name,
+      description: lib.description,
+      image: lib.github.image,
+    }));
   };
 
 const getLibraryHandler =
@@ -58,8 +90,8 @@ const getLibraryHandler =
         ],
         {
           where: {
-            user: request.jwt.id,
-            id: request.params.id,
+            user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.id },
+            id: { type: qb.WHERE_TYPE.EQUAL, value: request.params.id },
           },
           limit: 1,
         },
@@ -110,8 +142,8 @@ const updateLibraryHandler =
         },
         {
           where: {
-            id: request.params.id,
-            user: aud,
+            id: { type: qb.WHERE_TYPE.EQUAL, value: request.params.id },
+            user: { type: qb.WHERE_TYPE.EQUAL, value: aud },
           },
         },
       ),
@@ -128,8 +160,8 @@ const deleteLibraryHandler =
       operation: 'sql',
       sql: qb.buildDeleteQuery('data.libraries', {
         where: {
-          id: request.params.id,
-          user: aud,
+          id: { type: qb.WHERE_TYPE.EQUAL, value: request.params.id },
+          user: { type: qb.WHERE_TYPE.EQUAL, value: aud },
         },
       }),
     };
@@ -171,5 +203,6 @@ module.exports = {
   librarySuggestionsHandler,
   libraryMetadataHandler,
   updateLibraryHandler,
+  getLibrariesSearchHandler,
   deleteLibraryHandler,
 };

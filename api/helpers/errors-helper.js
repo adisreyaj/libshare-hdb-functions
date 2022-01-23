@@ -16,9 +16,14 @@ const unAuthorized = (reply, message = 'Unauthorized') => {
   const error = boom.unauthorized(message);
   return reply.code(error.output.statusCode).send(error.output.payload);
 };
+const notFound = (reply, message = 'Not found') => {
+  const error = boom.notFound(message);
+  return reply.code(error.output.statusCode).send(error.output.payload);
+};
 
 module.exports = {
   internalServerError,
   badRequest,
   unAuthorized,
+  notFound,
 };

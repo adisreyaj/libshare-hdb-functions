@@ -15,7 +15,6 @@ const formatLibraryMetaData = async (data) => {
   } = data;
 
   const gitRepo = links.repository ?? repository.url ?? null;
-
   const githubMetaData = gitRepo ? await getRepoDetails(gitRepo) : null;
 
   return {
@@ -24,7 +23,6 @@ const formatLibraryMetaData = async (data) => {
     description,
     links,
     license,
-    // image: githubMetaData?.owner?.avatar_url,
     github: getFormattedGithubData(githubMetaData),
     npm: {
       downloadsCount,

@@ -9,7 +9,9 @@ const loginHandler =
     const credentials = request.body;
     request.body = {
       operation: 'sql',
-      sql: qb.buildGetQuery('data.users', ['id', 'email', 'password'], { limit: 1 }),
+      sql: qb.buildGetQuery('data.users', ['id', 'firstName', 'lastName', 'email', 'password'], {
+        limit: 1,
+      }),
     };
     const result = await hdbCore.requestWithoutAuthentication(request);
     if (result.length === 0) {
@@ -26,9 +28,35 @@ const loginHandler =
     const token = await authHelpers.generateToken(logger, reply)(result[0]);
     return {
       token,
+      user: {
+        id: result[0].id,
+        firstName: result[0].firstName,
+        lastName: result[0].lastName,
+        email: result[0].email,
+      },
     };
+  };
+
+const getUserHandler =
+  ({ hdbCore }) =>
+  async (request, reply) => {
+    request.body = {
+      operation: 'sql',
+      sql: qb.buildGetQuery('data.users', ['id', 'firstName', 'lastName', 'email'], {
+        limit: 1,
+        where: {
+          id: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+        },
+      }),
+    };
+    const result = await hdbCore.requestWithoutAuthentication(request);
+    if (result?.length > 0) {
+      return result[0];
+    }
+    return errors.notFound(reply);
   };
 
 module.exports = {
   loginHandler,
+  getUserHandler,
 };

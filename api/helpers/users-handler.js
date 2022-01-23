@@ -1,6 +1,6 @@
 'use strict';
 
-const { buildInsertQuery, buildGetQuery } = require('./query-builder-helper');
+const qb = require('./query-builder-helper');
 const { hashPassword } = require('./users-helper');
 
 const createUserHandler =
@@ -10,7 +10,7 @@ const createUserHandler =
     const hashedPass = await hashPassword(password);
     request.body = {
       operation: 'sql',
-      sql: buildInsertQuery('data.users', { firstName, lastName, email, password: hashedPass }),
+      sql: qb.buildInsertQuery('data.users', { firstName, lastName, email, password: hashedPass }),
     };
     return hdbCore.requestWithoutAuthentication(request);
   };
@@ -20,9 +20,9 @@ const getUserHandler =
   async (request) => {
     request.body = {
       operation: 'sql',
-      sql: buildGetQuery('data.users', ['firstName', 'lastName', 'email', 'id'], {
+      sql: qb.buildGetQuery('data.users', ['firstName', 'lastName', 'email', 'id'], {
         where: {
-          id: request.params.id,
+          id: { type: qb.WHERE_TYPE.EQUAL, value: request.params.id },
         },
         limit: 1,
       }),

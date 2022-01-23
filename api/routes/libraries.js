@@ -12,6 +12,13 @@ module.exports = async (server, hdb) => {
   });
 
   server.route({
+    url: '/libraries/search',
+    method: 'GET',
+    preValidation: [authHelpers.authenticationCheck(hdb.logger)],
+    handler: libraryHandlers.getLibrariesSearchHandler(hdb),
+  });
+
+  server.route({
     url: '/libraries',
     method: 'POST',
     preValidation: [authHelpers.authenticationCheck(hdb.logger)],
