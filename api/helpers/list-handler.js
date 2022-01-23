@@ -7,12 +7,25 @@ const getListsHandler =
   async (request) => {
     request.body = {
       operation: 'sql',
-      sql: qb.buildGetQuery('data.lists', ['name', 'id', 'slug', 'libraries'], {
-        where: {
-          user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+      sql: qb.buildGetQuery(
+        'data.lists',
+        [
+          'name',
+          'description',
+          'public',
+          'id',
+          'slug',
+          'libraries',
+          '__createdtime__ as createdAt',
+          '__updatedtime__ as updatedAt',
+        ],
+        {
+          where: {
+            user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+          },
+          orderBy: 'name',
         },
-        orderBy: 'name',
-      }),
+      ),
     };
     return hdbCore.requestWithoutAuthentication(request);
   };
@@ -22,13 +35,26 @@ const getListHandler =
   async (request) => {
     request.body = {
       operation: 'sql',
-      sql: qb.buildGetQuery('data.lists', ['name', 'slug', 'id', 'libraries'], {
-        where: {
-          user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
-          id: { type: qb.WHERE_TYPE.EQUAL, value: request.params.id },
+      sql: qb.buildGetQuery(
+        'data.lists',
+        [
+          'name',
+          'description',
+          'public',
+          'id',
+          'slug',
+          'libraries',
+          '__createdtime__ as createdAt',
+          '__updatedtime__ as updatedAt',
+        ],
+        {
+          where: {
+            user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+            id: { type: qb.WHERE_TYPE.EQUAL, value: request.params.id },
+          },
+          limit: 1,
         },
-        limit: 1,
-      }),
+      ),
     };
     const [list] = await hdbCore.requestWithoutAuthentication(request);
     request.body = {
