@@ -33,6 +33,12 @@ module.exports = async (server, hdb) => {
   });
 
   server.route({
+    url: '/lists/public/:slug',
+    method: 'GET',
+    handler: listHandlers.getListBySlugHandler(hdb),
+  });
+
+  server.route({
     url: '/lists/:id',
     method: 'GET',
     preValidation: [authHelpers.authenticationCheck(hdb.logger)],

@@ -24,6 +24,7 @@
     "escape-quotes": "^1.0.2",
     "jsonwebtoken": "^8.5.1",
     "lodash.isobject": "^3.0.2",
+    "nanoid": "^3.2.0",
     "needle": "^3.0.0",
     "rfdc": "^1.3.0",
     "slugify": "^1.6.5",

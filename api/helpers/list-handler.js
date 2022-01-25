@@ -1,6 +1,9 @@
 'use strict';
 const qb = require('./query-builder-helper');
 const slugify = require('slugify');
+const errors = require('./errors-helper');
+const { customAlphabet, urlAlphabet } = require('nanoid');
+const nanoid = customAlphabet(urlAlphabet, 10);
 
 const getListsHandler =
   ({ hdbCore }) =>
@@ -72,6 +75,54 @@ const getListHandler =
     return list;
   };
 
+const getListBySlugHandler =
+  ({ hdbCore }) =>
+  async (request, reply) => {
+    request.body = {
+      operation: 'sql',
+      sql: qb.buildGetQuery(
+        'data.lists',
+        [
+          'name',
+          'description',
+          'public',
+          'id',
+          'slug',
+          'libraries',
+          'user',
+          '__createdtime__ as createdAt',
+          '__updatedtime__ as updatedAt',
+        ],
+        {
+          where: {
+            slug: { type: qb.WHERE_TYPE.EQUAL, value: request.params.slug },
+          },
+          limit: 1,
+        },
+      ),
+    };
+    const [list] = await hdbCore.requestWithoutAuthentication(request);
+    if (!list) {
+      return errors.notFound(reply, 'List not found');
+    }
+    if (!list.public) {
+      return errors.unAuthorized(reply, 'List is not public');
+    }
+    const userReq = getUserRequest(request);
+    const librariesReq = getLibrariesRequest(list, request);
+    try {
+      const [libraries, user] = await Promise.all([
+        hdbCore.requestWithoutAuthentication(librariesReq),
+        hdbCore.requestWithoutAuthentication(userReq),
+      ]);
+      list.libraries = libraries ?? [];
+      list.user = user[0] ?? {};
+      return list;
+    } catch (e) {
+      errors.internalServerError(reply);
+    }
+  };
+
 const updateListHandler =
   ({ hdbCore }) =>
   async (request) => {
@@ -104,7 +155,7 @@ const addListHandler =
       sql: qb.buildInsertQuery('data.lists', {
         name,
         description,
-        slug: slugify(name).toLowerCase(),
+        slug: slugify(`${name}-${nanoid()}`).toLowerCase(),
         user: aud,
         public: isPublic ?? false,
         libraries: libraries ?? [],
@@ -131,8 +182,52 @@ const deleteListHandler =
 
 module.exports = {
   getListsHandler,
+  getListBySlugHandler,
   addListHandler,
   getListHandler,
   updateListHandler,
   deleteListHandler,
 };
+function getUserRequest(request) {
+  return {
+    ...request,
+    body: {
+      operation: 'sql',
+      sql: qb.buildGetQuery('data.users', ['firstName', 'lastName', 'email', 'id'], {
+        where: {
+          id: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+        },
+        limit: 1,
+      }),
+    },
+  };
+}
+
+function getLibrariesRequest(list, request) {
+  const listIds = (list.libraries ?? [])?.map((list) => list.id);
+  request.body = {
+    operation: 'sql',
+    sql: qb.buildGetQuery(
+      'data.libraries',
+      [
+        'id',
+        'name',
+        'description',
+        'id',
+        'github',
+        'license',
+        'npm',
+        'version',
+        'links',
+        '__createdtime__ as createdAt',
+      ],
+      {
+        where: {
+          user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+          id: { type: qb.WHERE_TYPE.IN, value: listIds },
+        },
+      },
+    ),
+  };
+  return request;
+}
