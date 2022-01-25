@@ -108,8 +108,8 @@ const getListBySlugHandler =
     if (!list.public) {
       return errors.unAuthorized(reply, 'List is not public');
     }
-    const userReq = getUserRequest(request);
-    const librariesReq = getLibrariesRequest(list, request);
+    const userReq = getUserRequest(request, list.user);
+    const librariesReq = getLibrariesRequest(list, request, list.user);
     try {
       const [libraries, user] = await Promise.all([
         hdbCore.requestWithoutAuthentication(librariesReq),
@@ -188,14 +188,14 @@ module.exports = {
   updateListHandler,
   deleteListHandler,
 };
-function getUserRequest(request) {
+function getUserRequest(request, userId) {
   return {
     ...request,
     body: {
       operation: 'sql',
       sql: qb.buildGetQuery('data.users', ['firstName', 'lastName', 'email', 'id'], {
         where: {
-          id: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+          id: { type: qb.WHERE_TYPE.EQUAL, value: userId },
         },
         limit: 1,
       }),
@@ -203,7 +203,7 @@ function getUserRequest(request) {
   };
 }
 
-function getLibrariesRequest(list, request) {
+function getLibrariesRequest(list, request, userId) {
   const listIds = (list.libraries ?? [])?.map((list) => list.id);
   request.body = {
     operation: 'sql',
@@ -223,7 +223,7 @@ function getLibrariesRequest(list, request) {
       ],
       {
         where: {
-          user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
+          user: { type: qb.WHERE_TYPE.EQUAL, value: userId },
           id: { type: qb.WHERE_TYPE.IN, value: listIds },
         },
       },
