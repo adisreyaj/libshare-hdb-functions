@@ -23,7 +23,7 @@ module.exports = async (server, hdb) => {
   server.route({
     url: '/signup',
     method: 'POST',
-    preValidation: userHelpers.validateUser(hdb.logger),
+    preValidation: [userHelpers.validateUser(hdb.logger), userHelpers.existingUserValidation(hdb)],
     handler: userHandlers.createUserHandler(hdb),
   });
 };

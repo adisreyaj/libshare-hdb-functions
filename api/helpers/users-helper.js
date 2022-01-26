@@ -3,6 +3,7 @@
 const yup = require('yup');
 const bcrypt = require('bcryptjs');
 const errors = require('./errors-helper');
+const qb = require('./query-builder-helper');
 
 const hashPassword = async (password) => {
   try {
@@ -30,7 +31,28 @@ const validateUser = (logger) => async (request, reply) => {
   }
 };
 
+const existingUserValidation =
+  ({ hdbCore }) =>
+  async (request, reply) => {
+    const email = request.body.email;
+    request.body = {
+      operation: 'sql',
+      sql: qb.buildGetQuery('data.users', ['id'], {
+        where: {
+          email: { type: qb.WHERE_TYPE.EQUAL, value: email },
+        },
+        limit: 1,
+      }),
+    };
+    const [user] = await hdbCore.requestWithoutAuthentication(request);
+    if (user != null) {
+      return errors.badRequest(reply, 'User already exists');
+    }
+    return true;
+  };
+
 module.exports = {
   validateUser,
   hashPassword,
+  existingUserValidation,
 };
