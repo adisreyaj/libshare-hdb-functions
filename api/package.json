@@ -14,11 +14,10 @@
     "dotenv": "^14.2.0",
     "escape-quotes": "^1.0.2",
     "fast-jwt": "^1.4.1",
-    "jwt-simple": "^0.5.6",
+    "joi": "^17.5.0",
     "lodash.isobject": "^3.0.2",
     "nanoid": "^3.2.0",
     "needle": "^3.0.0",
-    "slugify": "^1.6.5",
-    "yup": "^0.32.11"
+    "slugify": "^1.6.5"
   }
 }

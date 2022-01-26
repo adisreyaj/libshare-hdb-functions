@@ -1,6 +1,6 @@
 'use strict';
 
-const yup = require('yup');
+const joi = require('joi');
 const bcrypt = require('bcryptjs');
 const errors = require('./errors-helper');
 const { createSigner, createVerifier } = require('fast-jwt');
@@ -59,9 +59,9 @@ const validatePassword = async (password, savedPassword) => {
   }
 };
 
-const LOGIN_VALIDATION_SCHEMA = yup.object().shape({
-  email: yup.string().email().required(),
-  password: yup.string().required(),
+const LOGIN_VALIDATION_SCHEMA = joi.object({
+  email: joi.string().email().required(),
+  password: joi.string().required(),
 });
 
 const validateLoginBody = (logger) => async (request, reply) => {

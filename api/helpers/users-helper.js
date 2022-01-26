@@ -1,6 +1,6 @@
 'use strict';
 
-const yup = require('yup');
+const joi = require('joi');
 const bcrypt = require('bcryptjs');
 const errors = require('./errors-helper');
 const qb = require('./query-builder-helper');
@@ -14,11 +14,11 @@ const hashPassword = async (password) => {
   }
 };
 
-const USER_VALIDATION_SCHEMA = yup.object().shape({
-  firstName: yup.string().required(),
-  lastName: yup.string().required(),
-  email: yup.string().email().required(),
-  password: yup.string().required(),
+const USER_VALIDATION_SCHEMA = joi.object({
+  firstName: joi.string().required(),
+  lastName: joi.string().required(),
+  email: joi.string().email().required(),
+  password: joi.string().required(),
 });
 
 const validateUser = (logger) => async (request, reply) => {

@@ -1,24 +1,28 @@
 'use strict';
 
-const yup = require('yup');
+const joi = require('joi');
 const errors = require('./errors-helper');
 
-const NEW_LIST_VALIDATOR_SCHEMA = yup.object().shape({
-  name: yup.string().required(),
-  description: yup.string(),
-  public: yup.boolean(),
-  libraries: yup.array().of(
-    yup.object().shape({
-      id: yup.string().required(),
-      name: yup.string().required(),
-      description: yup.string(),
-      image: yup.string().url(),
+const COMMON_VALIDATOR = {
+  description: joi.string(),
+  public: joi.boolean(),
+  libraries: joi.array().items(
+    joi.object({
+      id: joi.string().required(),
+      name: joi.string().required(),
+      description: joi.string(),
+      image: joi.string(),
     }),
   ),
+};
+const NEW_LIST_VALIDATOR_SCHEMA = joi.object({
+  name: joi.string().required(),
+  ...COMMON_VALIDATOR,
 });
 
-const UPDATE_LIST_VALIDATOR_SCHEMA = NEW_LIST_VALIDATOR_SCHEMA.shape({
-  name: yup.string(),
+const UPDATE_LIST_VALIDATOR_SCHEMA = joi.object({
+  name: joi.string(),
+  ...COMMON_VALIDATOR,
 });
 
 const validateNewList = (logger) => async (request, reply) => {
