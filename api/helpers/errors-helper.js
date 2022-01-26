@@ -16,6 +16,10 @@ const unAuthorized = (reply, message = 'Unauthorized') => {
   const error = boom.unauthorized(message);
   return reply.code(error.output.statusCode).send(error.output.payload);
 };
+const forbidden = (reply, message = 'Forbidden') => {
+  const error = boom.forbidden(message);
+  return reply.code(error.output.statusCode).send(error.output.payload);
+};
 const notFound = (reply, message = 'Not found') => {
   const error = boom.notFound(message);
   return reply.code(error.output.statusCode).send(error.output.payload);
@@ -26,4 +30,5 @@ module.exports = {
   badRequest,
   unAuthorized,
   notFound,
+  forbidden,
 };

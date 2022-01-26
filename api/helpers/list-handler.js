@@ -33,12 +33,11 @@ const getListsHandler =
     return hdbCore.requestWithoutAuthentication(request);
   };
 
-const getListHandler =
-  ({ hdbCore }) =>
-  async (request) => {
-    request.body = {
-      operation: 'sql',
-      sql: qb.buildGetQuery(
+const getListHandler = ({ hdbCore }) =>
+  getPopulatedList(
+    hdbCore,
+    (request) =>
+      qb.buildGetQuery(
         'data.lists',
         [
           'name',
@@ -47,40 +46,26 @@ const getListHandler =
           'id',
           'slug',
           'libraries',
+          'user',
           '__createdtime__ as createdAt',
           '__updatedtime__ as updatedAt',
         ],
         {
           where: {
-            user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
             id: { type: qb.WHERE_TYPE.EQUAL, value: request.params.id },
+            user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
           },
           limit: 1,
         },
       ),
-    };
-    const [list] = await hdbCore.requestWithoutAuthentication(request);
-    request.body = {
-      operation: 'sql',
-      sql: qb.buildGetQuery('data.libraries', ['name', 'id'], {
-        where: {
-          user: { type: qb.WHERE_TYPE.EQUAL, value: request.jwt.aud },
-          id: { type: qb.WHERE_TYPE.IN, value: list.libraries ?? [] },
-        },
-      }),
-    };
+    false,
+  );
 
-    const libraries = await hdbCore.requestWithoutAuthentication(request);
-    list.libraries = libraries ?? [];
-    return list;
-  };
-
-const getListBySlugHandler =
-  ({ hdbCore }) =>
-  async (request, reply) => {
-    request.body = {
-      operation: 'sql',
-      sql: qb.buildGetQuery(
+const getListBySlugHandler = ({ hdbCore }) =>
+  getPopulatedList(
+    hdbCore,
+    (request) =>
+      qb.buildGetQuery(
         'data.lists',
         [
           'name',
@@ -100,28 +85,8 @@ const getListBySlugHandler =
           limit: 1,
         },
       ),
-    };
-    const [list] = await hdbCore.requestWithoutAuthentication(request);
-    if (!list) {
-      return errors.notFound(reply, 'List not found');
-    }
-    if (!list.public) {
-      return errors.unAuthorized(reply, 'List is not public');
-    }
-    const userReq = getUserRequest(request, list.user);
-    const librariesReq = getLibrariesRequest(list, request, list.user);
-    try {
-      const [libraries, user] = await Promise.all([
-        hdbCore.requestWithoutAuthentication(librariesReq),
-        hdbCore.requestWithoutAuthentication(userReq),
-      ]);
-      list.libraries = libraries ?? [];
-      list.user = user[0] ?? {};
-      return list;
-    } catch (e) {
-      errors.internalServerError(reply);
-    }
-  };
+    true,
+  );
 
 const updateListHandler =
   ({ hdbCore }) =>
@@ -188,6 +153,36 @@ module.exports = {
   updateListHandler,
   deleteListHandler,
 };
+
+function getPopulatedList(hdbCore, getSQL, allowPublic = false) {
+  return async (request, reply) => {
+    request.body = {
+      operation: 'sql',
+      sql: getSQL(request),
+    };
+    const [list] = await hdbCore.requestWithoutAuthentication(request);
+    if (!list) {
+      return errors.notFound(reply, 'List not found');
+    }
+    if (allowPublic && !list.public) {
+      return errors.forbidden(reply, 'List is not public');
+    }
+    const userReq = getUserRequest(request, list.user);
+    const librariesReq = getLibrariesRequest(list, request, list.user);
+    try {
+      const [libraries, user] = await Promise.all([
+        hdbCore.requestWithoutAuthentication(librariesReq),
+        hdbCore.requestWithoutAuthentication(userReq),
+      ]);
+      list.libraries = libraries ?? [];
+      list.user = user[0] ?? {};
+      return list;
+    } catch (e) {
+      errors.internalServerError(reply);
+    }
+  };
+}
+
 function getUserRequest(request, userId) {
   return {
     ...request,
