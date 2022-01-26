@@ -8,11 +8,21 @@ const createUserHandler =
   async (request) => {
     const { firstName, lastName, email, password } = request.body;
     const hashedPass = await hashPassword(password);
-    request.body = {
-      operation: 'sql',
-      sql: qb.buildInsertQuery('data.users', { firstName, lastName, email, password: hashedPass }),
+
+    const sqlReq = {
+      ...request,
+      body: {
+        operation: 'sql',
+        sql: qb.buildInsertQuery('data.users', {
+          firstName,
+          lastName,
+          email,
+          password: hashedPass,
+        }),
+      },
     };
-    return hdbCore.requestWithoutAuthentication(request);
+
+    return hdbCore.requestWithoutAuthentication(sqlReq);
   };
 
 const getUserHandler =

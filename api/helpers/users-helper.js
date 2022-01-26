@@ -35,16 +35,19 @@ const existingUserValidation =
   ({ hdbCore }) =>
   async (request, reply) => {
     const email = request.body.email;
-    request.body = {
-      operation: 'sql',
-      sql: qb.buildGetQuery('data.users', ['id'], {
-        where: {
-          email: { type: qb.WHERE_TYPE.EQUAL, value: email },
-        },
-        limit: 1,
-      }),
+    const clonedReq = {
+      ...request,
+      body: {
+        operation: 'sql',
+        sql: qb.buildGetQuery('data.users', ['id'], {
+          where: {
+            email: { type: qb.WHERE_TYPE.EQUAL, value: email },
+          },
+          limit: 1,
+        }),
+      },
     };
-    const [user] = await hdbCore.requestWithoutAuthentication(request);
+    const [user] = await hdbCore.requestWithoutAuthentication(clonedReq);
     if (user != null) {
       return errors.badRequest(reply, 'User already exists');
     }
