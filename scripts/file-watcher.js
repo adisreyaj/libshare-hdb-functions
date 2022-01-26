@@ -3,7 +3,7 @@ const chokidar = require('chokidar');
 require('dotenv').config();
 const updateFunctions = async () => {
   try {
-    const res = fetch('http://localhost:9925', {
+    fetch('http://localhost:9925', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -17,6 +17,6 @@ const updateFunctions = async () => {
   }
 };
 
-chokidar.watch('./api/**/*.js').on('change', (event, path) => {
+chokidar.watch('./api/**/*.js').on('change', () => {
   updateFunctions();
 });
