@@ -1,12 +1,17 @@
 'use strict';
 
-const jwt = require('jwt-simple');
 const yup = require('yup');
 const bcrypt = require('bcryptjs');
 const errors = require('./errors-helper');
+const { createSigner, createVerifier } = require('fast-jwt');
+
 require('dotenv').config({
   path: `${__dirname}/../.env`,
 });
+
+const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
+const signSync = createSigner({ key: process.env.JWT_SECRET, expiresIn: ONE_DAY_IN_MS });
+const verifySync = createVerifier({ key: process.env.JWT_SECRET });
 
 const authenticationCheck = (logger) => async (request, reply) => {
   try {
@@ -25,7 +30,7 @@ const authenticationCheck = (logger) => async (request, reply) => {
 
 const getDecodedToken = (token) => {
   try {
-    return jwt.decode(token, process.env.JWT_SECRET);
+    return verifySync(token);
   } catch (error) {
     return null;
   }
@@ -33,16 +38,12 @@ const getDecodedToken = (token) => {
 
 const generateToken = (logger, reply) => async (user) => {
   try {
-    const token = jwt.encode(
-      {
-        email: user.email,
-        aud: user.id,
-        iss: 'https://libshare.adi.so',
-        sub: 'libshare-web',
-        exp: Date.now() + 24 * 60 * 60 * 1000,
-      },
-      process.env.JWT_SECRET,
-    );
+    const token = signSync({
+      email: user.email,
+      aud: user.id,
+      iss: 'https://libshare.adi.so',
+      sub: 'libshare-web',
+    });
     return token;
   } catch (error) {
     logger.notify(`Failed to generate token. Err: ${error}`);
