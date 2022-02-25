@@ -11,6 +11,9 @@ const loginHandler =
       operation: 'sql',
       sql: qb.buildGetQuery('data.users', ['id', 'firstName', 'lastName', 'email', 'password'], {
         limit: 1,
+        where: {
+          email: { type: qb.WHERE_TYPE.EQUAL, value: credentials.email },
+        },
       }),
     };
     const result = await hdbCore.requestWithoutAuthentication(request);
